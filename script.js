@@ -249,7 +249,7 @@ $(function() {
         messages.append('<div><span class="file">' +
           message.src + ' has sent you a <a target="_blank" href="' + url + '">file</a>.</span></div>');
       } else {
-        const data = JSON.parse(message);
+        const data = JSON.parse(message.data);
         messages.append('<div><span class="peer">' + data.name+ '</span>: ' + data.msg + '</div>');
       }
     });
