@@ -45,6 +45,11 @@
     <div id="step2">
       <h3>Make a call</h3>
       <form id="make-call" class="pure-form">
+        <input type="text" placeholder="Your Name..." id="yourname">
+        <br>
+        <input type="radio" name=myradio value="teacher">先生
+        <input type="radio" name=myradio value="student">生徒
+        <br>
         <input type="text" placeholder="Join room..." id="join-room">
         <button class="pure-button pure-button-success" type="submit">Join</button>
       </form>
@@ -62,17 +67,12 @@
     <div id="actions">
   Your Peer ID is <span id="pid"></span><br>
   Connect to a room:
-  <form id="connect">
-    <input type="text" id="roomName" placeholder="Room name">
-    <input class="button" type="submit" value="Connect">
-  </form>
-  <br>
-  <br>
+  
   <form id="send">
     <input type="text" id="text" placeholder="Enter message">
     <input class="button" type="submit" value="Send to selected peers">
   </form>
-  <button id="close">Close selected connections</button>
+  
 </div>
 
 <div id="wrap"><div id="connections"><span class="filler">You have not yet
