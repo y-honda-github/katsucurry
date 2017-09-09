@@ -114,9 +114,9 @@ h2 {
 }
 
 .connection {
-  float: left;
+
   height: 250px;
-  width: 200px;
+
   overflow: scroll;
   background-color: #fff;
   padding: 10px;
