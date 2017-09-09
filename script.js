@@ -36,8 +36,8 @@ $(function() {
     }
 
     videoRoom = peer.joinRoom('mesh_video_' + roomName, {stream: localStream});
-    publicChatRoom = peer.joinRoom('mesh_text_' + roomName + '_public', {stream: localStream});
-    kosokosoRoom = peer.joinRoom('mesh_text_' + roomName + '_kosokoso');
+    publicChatRoom = peer.joinRoom('質問ルーム' + roomName + '_public', {stream: localStream});
+    kosokosoRoom = peer.joinRoom('こそこそルーム' + roomName + '_kosokoso');
     
     //$('#room-id').text(roomName);
     step3(videoRoom);
@@ -222,7 +222,8 @@ $(function() {
 
         switch (log.messageType) {
           case 'ROOM_DATA':
-            messages.append('<div><span class="peer">' + userName + '</span>: ' + log.message.data + '</div>');
+           const data_json = JSON.parse(log.message.data);
+            messages.append('<div><span class="peer">' + data_json.name + '</span>: ' + data_json.msg+ '</div>');
             break;
           case 'ROOM_USER_JOIN':
             if (log.message.src === peer.id) {
