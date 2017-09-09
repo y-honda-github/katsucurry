@@ -1,7 +1,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>SkyWay - Video chat example</title>
+  <title>オンライン授業！！〜コソコソ話を添えて〜</title>
   <link rel="stylesheet" href="style.css">
   <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script type="text/javascript" src="https://cdn.webrtc.ecl.ntt.com/skyway-latest.js"></script>
@@ -21,7 +21,7 @@
 
   <!-- Steps -->
   <div class="pure-u-1-3">
-    <h2>SkyWay Video Chat</h2>
+    <h2>オンライン授業！！〜コソコソ話を添えて〜</h2>
 
     <div class="select">
       <label for="audioSource">Audio input source: </label><select id="audioSource"></select>
@@ -42,14 +42,17 @@
 
     <p>Your id: <span id="my-id">...</span></p>
     <!-- Make calls to others -->
+    <div id="setting">
+      <form id="name_setting" class="name-form">
+        <input type="text" placeholder="Your Name..." id="yourname">
+        <input type="radio" name=myradio value="teacher">先生
+        <input type="radio" name=myradio value="student">生徒
+        <button class="register-button" type="register">登録</button>
+      </form>
+    </div>
     <div id="step2">
       <h3>Make a call</h3>
       <form id="make-call" class="pure-form">
-        <input type="text" placeholder="Your Name..." id="yourname">
-        <br>
-        <input type="radio" name=myradio value="teacher">先生
-        <input type="radio" name=myradio value="student">生徒
-        <br>
         <input type="text" placeholder="Join room..." id="join-room">
         <button class="pure-button pure-button-success" type="submit">Join</button>
       </form>
