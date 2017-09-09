@@ -1,7 +1,7 @@
 /* eslint-disable require-jsdoc */
 $(function() {
   // Peer object
-  const peer = new Peer('abc', {
+  const peer = new Peer({
     key:   window.__SKYWAY_KEY__,
     debug: 3,
   });
@@ -58,10 +58,14 @@ $(function() {
   $('#send').on('submit', e => {
     e.preventDefault();
     // For each active connection, send the message.
-    const msg = userName $('#text').val();
+    const msg = $('#text').val();
 
     eachActiveRoom((room, $c) => {
-      room.send(msg);
+      const data = {
+        name: userName,
+        msg: msg
+      };
+      room.send(JSON.stringify(data));
       $c.find('.messages').append('<div><span class="you">' + userName + ': </span>' + msg
         + '</div>');
     });
@@ -244,7 +248,8 @@ $(function() {
         messages.append('<div><span class="file">' +
           message.src + ' has sent you a <a target="_blank" href="' + url + '">file</a>.</span></div>');
       } else {
-        messages.append('<div><span class="peer">' + userName + '</span>: ' + message.data + '</div>');
+        const data = JSON.parse(message);
+        messages.append('<div><span class="peer">' + data.name+ '</span>: ' + data.msg + '</div>');
       }
     });
 
