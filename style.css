@@ -110,6 +110,23 @@ Copyright (c) Nicolas Gallagher and Jonathan Neal
   border-style: solid;
 }
 
+.connection {
+  float: left;
+  height: 250px;
+  width: 200px;
+  overflow: scroll;
+  background-color: #fff;
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid #ccc;
+}
+.connection div {
+  margin: 5px 0;
+}
+.connection.active {
+  border-color: #FF7500;
+}
+
 .filler {
   display: block;
   padding: 10px;
