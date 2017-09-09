@@ -1,13 +1,17 @@
 /* eslint-disable require-jsdoc */
 $(function() {
   // Peer object
-  const peer = new Peer({
+  const peer = new Peer('abc', {
     key:   window.__SKYWAY_KEY__,
     debug: 3,
   });
 
   let localStream;
-  let room;
+  let videoRoom, publicChatRoom, kosokosoRoom;
+  let userName = 'anonymous';
+  let role;
+  const connectedPeers = {};
+
   peer.on('open', () => {
     $('#my-id').text(peer.id);
     // Get things started
@@ -24,19 +28,63 @@ $(function() {
     e.preventDefault();
     // Initiate a call!
     const roomName = $('#join-room').val();
+    role = $('input[name=myradio]:checked').val();
+    userName = $('#yourname').val() + (role == 'teacher' ? '先生': '');
+
     if (!roomName) {
       return;
     }
-    room = peer.joinRoom('mesh_video_' + roomName, {stream: localStream});
 
-    $('#room-id').text(roomName);
-    step3(room);
+    videoRoom = peer.joinRoom('mesh_video_' + roomName, {stream: localStream});
+    publicChatRoom = peer.joinRoom('mesh_text_' + roomName + '_public', {stream: localStream});
+    kosokosoRoom = peer.joinRoom('mesh_text_' + roomName + '_kosokoso');
+    
+    //$('#room-id').text(roomName);
+    step3(videoRoom);
+
+    publicChatRoom.on('open', function() {
+        connect(publicChatRoom);
+        connectedPeers[roomName] = publicChatRoom;
+    });
+
+    kosokosoRoom.on('open', function() {
+        if (role != 'teacher') {
+          connect(kosokosoRoom);
+        }
+        connectedPeers[roomName] = kosokosoRoom;
+    });
+  });
+
+  $('#send').on('submit', e => {
+    e.preventDefault();
+    // For each active connection, send the message.
+    const msg = userName $('#text').val();
+
+    eachActiveRoom((room, $c) => {
+      room.send(msg);
+      $c.find('.messages').append('<div><span class="you">' + userName + ': </span>' + msg
+        + '</div>');
+    });
+    $('#text').val('');
+    $('#text').focus();
   });
 
   $('#end-call').on('click', () => {
-    room.close();
+    videoRoom.close();
+    publicChatRoom.close();
+    kosokosoRoom.close();
+    eachActiveRoom(function(room, $c) {
+      room.close();
+      $c.remove();
+    });
     step2();
   });
+
+  window.onunload = window.onbeforeunload = function(e) {
+    if (!!peer && !peer.destroyed) {
+      peer.destroy();
+    }
+  };
 
   // Retry if getUserMedia fails
   $('#step1-retry').on('click', () => {
@@ -98,8 +146,8 @@ $(function() {
       $('#my-video').get(0).srcObject = stream;
       localStream = stream;
 
-      if (room) {
-        room.replaceStream(stream);
+      if (videoRoom) {
+        videoRoom.replaceStream(stream);
         return;
       }
 
@@ -113,7 +161,7 @@ $(function() {
   function step2() {
     $('#step1, #step3').hide();
     $('#step2').show();
-    $('#join-room').focus();
+    //$('#join-room').focus();
   }
 
   function step3(room) {
@@ -144,5 +192,85 @@ $(function() {
     });
     $('#step1, #step2').hide();
     $('#step3').show();
+  }
+
+  function connect(room) {
+    // Handle a chat connection.
+    $('#text').focus();
+    const chatbox = $('<div></div>').addClass('connection').addClass('active').attr('id', room.name);
+    const roomName = room.name.replace('sfu_text_', '');
+    const header = $('<h1></h1>').html('Room: <strong>' + roomName + '</strong>');
+    const messages = $('<div><em>Peer connected.</em></div>').addClass('messages');
+    chatbox.append(header);
+    chatbox.append(messages);
+    // Select connection handler.
+    chatbox.on('click', () => {
+      chatbox.toggleClass('active');
+    });
+
+    $('.filler').hide();
+    $('#connections').append(chatbox);
+
+    room.getLog();
+    room.once('log', logs => {
+      for (let i = 0; i < logs.length; i++) {
+        const log = JSON.parse(logs[i]);
+
+        switch (log.messageType) {
+          case 'ROOM_DATA':
+            messages.append('<div><span class="peer">' + userName + '</span>: ' + log.message.data + '</div>');
+            break;
+          case 'ROOM_USER_JOIN':
+            if (log.message.src === peer.id) {
+              break;
+            }
+            messages.append('<div><span class="peer">' + userName + '</span>: has joined the room </div>');
+            break;
+          case 'ROOM_USER_LEAVE':
+            if (log.message.src === peer.id) {
+              break;
+            }
+            messages.append('<div><span class="peer">' + userName + '</span>: has left the room </div>');
+            break;
+        }
+      }
+    });
+
+    room.on('data', message => {
+      if (message.data instanceof ArrayBuffer) {
+        const dataView = new Uint8Array(message.data);
+        const dataBlob = new Blob([dataView]);
+        const url = URL.createObjectURL(dataBlob);
+        messages.append('<div><span class="file">' +
+          message.src + ' has sent you a <a target="_blank" href="' + url + '">file</a>.</span></div>');
+      } else {
+        messages.append('<div><span class="peer">' + userName + '</span>: ' + message.data + '</div>');
+      }
+    });
+
+    room.on('peerJoin', peerId => {
+      messages.append('<div><span class="peer">' + userName + '</span>: has joined the room </div>');
+    });
+
+    room.on('peerLeave', peerId => {
+      messages.append('<div><span class="peer">' + userName + '</span>: has left the room </div>');
+    });
+  }
+
+  function eachActiveRoom(fn) {
+    const actives = $('.active');
+    const checkedIds = {};
+    actives.each((_, el) => {
+      const peerId = $(el).attr('id');
+      if (!checkedIds[peerId]) {
+        const room = peer.rooms[peerId];
+        //fn(kosokosoRoom, $(el));
+        if (role == 'teacher' && room == kosokosoRoom) {
+          return;
+        }
+        fn(room, $(el));
+      }
+      checkedIds[peerId] = 1;
+    });
   }
 });
